@@ -62,6 +62,83 @@
     flex: 1 1 200px;
     max-width: 220px;
   }
+  button.btn {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: center;
+  }
+
+  /* ===== 2寸照片排版 内嵌工具（命名空间 idp-，自包含，不依赖外部文件） ===== */
+  #idphotoModal {
+    position: fixed; inset: 0; z-index: 9998;
+    background: #eef1f5; overflow: auto; display: none;
+  }
+  #idphotoModal.open { display: block; }
+  .idp-topbar {
+    position: sticky; top: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08); z-index: 5;
+  }
+  .idp-topbar h2 { font-size: 18px; color: #222; margin: 0; }
+  #idpClose {
+    border: none; background: #eef1f5; color: #555;
+    padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 14px;
+  }
+  #idpClose:hover { background: #e2e7ee; }
+  .idp-panel {
+    max-width: 560px; margin: 20px auto; background: #fff;
+    border-radius: 14px; box-shadow: 0 4px 20px rgba(0,0,0,.06); padding: 22px 24px;
+  }
+  .idp-panel h1 { font-size: 20px; margin-bottom: 4px; color: #222; }
+  .idp-desc { font-size: 12px; color: #999; margin-bottom: 18px; }
+  .idp-field { margin-bottom: 14px; }
+  .idp-field label { display: block; font-size: 13px; color: #555; margin-bottom: 6px; }
+  .idp-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .idp-row > .idp-field { flex: 1; min-width: 120px; margin-bottom: 0; }
+  .idp-panel input[type=file], .idp-panel select, .idp-panel input[type=number], .idp-panel input[type=color] {
+    width: 100%; padding: 9px 10px; font-size: 14px;
+    border: 1px solid #d8dee8; border-radius: 8px; background: #fff; outline: none;
+  }
+  .idp-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #555; }
+  .idp-check input { width: 16px; height: 16px; }
+  .idp-drop {
+    border: 2px dashed #c4cdda; border-radius: 10px; padding: 18px;
+    text-align: center; color: #888; font-size: 13px; cursor: pointer; transition: .15s;
+  }
+  .idp-drop.over { border-color: #1a73e8; background: #f3f8ff; color: #1a73e8; }
+  .idp-btns { display: flex; gap: 12px; margin-top: 6px; }
+  .idp-btn {
+    flex: 1; padding: 12px; font-size: 15px; font-weight: 600;
+    border: none; border-radius: 9px; cursor: pointer; transition: .15s;
+  }
+  .idp-btn-primary { background: #1a73e8; color: #fff; }
+  .idp-btn-primary:hover { background: #1557b0; }
+  .idp-btn-ghost { background: #eef1f5; color: #555; }
+  .idp-btn-ghost:hover { background: #e2e7ee; }
+  .idp-info {
+    text-align: center; font-size: 13px; color: #1a73e8; margin: 10px 0 0;
+    background: #f3f8ff; border-radius: 8px; padding: 8px;
+  }
+  .idp-stage { display: flex; justify-content: center; padding: 0 16px 32px; overflow: auto; }
+  .idp-sheet { background: #fff; box-shadow: 0 4px 24px rgba(0,0,0,.12); }
+  .idp-cell { position: relative; overflow: hidden; background: #000; }
+  .idp-cell .idp-ph {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #bbb; font-size: 11px;
+  }
+  .idp-cell img { width: 100%; height: 100%; display: block; }
+
+  @media print {
+    @page { size: A4; margin: 0; }
+    body { background: #fff !important; padding: 0 !important; display: block !important; }
+    .card { display: none !important; }
+    #idpClose, .idp-topbar, #idphotoModal .idp-panel { display: none !important; }
+    #idphotoModal { display: block !important; position: static !important; background: #fff !important; overflow: visible !important; }
+    #idphotoModal .idp-stage { display: block !important; overflow: visible !important; padding: 0 !important; }
+    #idphotoModal .idp-sheet { box-shadow: none !important; margin: 0 !important; }
+  }
 </style>
 </head>
 <body>
@@ -74,7 +151,166 @@
       <a class="btn" href="https://sgc20261009.github.io/pipe-weight-calculator/" target="_blank" rel="noopener">管材重量计算器</a>
       <a class="btn" href="https://mp.weixin.qq.com/s/fDBHnrq_U9y4TyfPXUXfuw" target="_blank" rel="noopener">硬度换算</a>
       <a class="btn" href="https://sgc20261009.github.io/rmb-converter/" target="_blank" rel="noopener">人民币大写转换</a>
+      <button class="btn" type="button" onclick="window.open('https://sgc20261009.github.io/id-photo-print/','_blank','noopener')">1寸照片A4排版</button>
+      <button class="btn" type="button" onclick="openIdPhoto2()">2寸照片A4排版</button>
     </div>
   </div>
+
+  <!-- 2寸照片排版 内嵌工具（完整副本，删除外部 id-photo-print-2-cun.html 不影响） -->
+  <div id="idphotoModal">
+    <div class="idp-topbar">
+      <h2>2寸照片 A4 排版打印</h2>
+      <button id="idpClose" type="button">关闭 ✕</button>
+    </div>
+
+    <div class="idp-panel">
+      <h1>2寸照片 A4 排版打印</h1>
+      <div class="idp-desc">上传一张照片，自动按 A4（210×297mm）排版成 35×49mm 2寸相片，直接打印或另存 PDF。</div>
+
+      <div class="idp-field">
+        <label>① 选择照片</label>
+        <div class="idp-drop" id="idpDrop">点击选择，或把图片拖到这里</div>
+        <input type="file" id="idpFile" accept="image/*" hidden>
+      </div>
+
+      <div class="idp-field">
+        <label>② 裁剪方式</label>
+        <select id="idpFit">
+          <option value="cover">填满裁剪（推荐，按相框裁切多余部分）</option>
+          <option value="contain">完整显示（保留全部，留白边）</option>
+        </select>
+      </div>
+
+      <div class="idp-field" id="idpBgField" style="display:none;">
+        <label>留白边颜色</label>
+        <input type="color" id="idpBg" value="#ffffff">
+      </div>
+
+      <div class="idp-row">
+        <div class="idp-field">
+          <label>页边距 (mm)</label>
+          <input type="number" id="idpMargin" value="5" min="0" max="40" step="1">
+        </div>
+        <div class="idp-field">
+          <label>照片间距 (mm)</label>
+          <input type="number" id="idpGap" value="2" min="0" max="20" step="1">
+        </div>
+      </div>
+
+      <div class="idp-field">
+        <label class="idp-check"><input type="checkbox" id="idpAuto" checked> 自动填满整页</label>
+      </div>
+      <div class="idp-field" id="idpCountField" style="display:none;">
+        <label>打印张数</label>
+        <input type="number" id="idpCount" value="8" min="1" step="1">
+      </div>
+
+      <div class="idp-field">
+        <label class="idp-check"><input type="checkbox" id="idpLines" checked> 显示裁剪辅助线</label>
+      </div>
+
+      <div class="idp-btns">
+        <button class="idp-btn idp-btn-primary" id="idpPrintBtn">打印 / 另存PDF</button>
+        <button class="idp-btn idp-btn-ghost" id="idpResetBtn">清空</button>
+      </div>
+      <div class="idp-info" id="idpInfo">请先选择一张照片</div>
+    </div>
+
+    <div class="idp-stage">
+      <div class="idp-sheet" id="idpSheet"></div>
+    </div>
+  </div>
+
+<script>
+  // ===== 2寸照片排版 内嵌工具 =====
+  (function () {
+    const modal = document.getElementById('idphotoModal');
+    window.openIdPhoto2 = function () { modal.classList.add('open'); modal.scrollTop = 0; };
+    window.closeIdPhoto2 = function () { modal.classList.remove('open'); };
+    document.getElementById('idpClose').addEventListener('click', window.closeIdPhoto2);
+
+    // 排版逻辑
+    const PAGE_W = 210, PAGE_H = 297;   // A4 mm
+    const CELL_W = 35, CELL_H = 49;     // 2寸 mm
+    const state = { src: null };
+    const $ = id => document.getElementById(id);
+    const drop = $('idpDrop'), fileInput = $('idpFile'), sheet = $('idpSheet'), info = $('idpInfo');
+
+    drop.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+    ['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+    ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+    drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) loadImage(f); });
+
+    function loadImage(file) {
+      const reader = new FileReader();
+      reader.onload = ev => { state.src = ev.target.result; drop.textContent = '已选择：' + file.name; render(); };
+      reader.readAsDataURL(file);
+    }
+
+    ['idpFit', 'idpBg', 'idpMargin', 'idpGap', 'idpAuto', 'idpCount', 'idpLines'].forEach(id => $(id).addEventListener('input', render));
+    $('idpFit').addEventListener('change', () => { $('idpBgField').style.display = $('idpFit').value === 'contain' ? 'block' : 'none'; render(); });
+    $('idpAuto').addEventListener('change', () => { $('idpCountField').style.display = $('idpAuto').checked ? 'none' : 'block'; render(); });
+    $('idpPrintBtn').addEventListener('click', () => window.print());
+    $('idpResetBtn').addEventListener('click', () => {
+      state.src = null; fileInput.value = ''; drop.textContent = '点击选择，或把图片拖到这里'; render();
+    });
+
+    function render() {
+      const margin = Math.max(0, +$('idpMargin').value || 0);
+      const gap = Math.max(0, +$('idpGap').value || 0);
+      const fit = $('idpFit').value;
+      const bg = $('idpBg').value;
+      const showLines = $('idpLines').checked;
+      const auto = $('idpAuto').checked;
+
+      const usableW = PAGE_W - 2 * margin;
+      const usableH = PAGE_H - 2 * margin;
+      let cols = Math.max(1, Math.floor((usableW + gap) / (CELL_W + gap)));
+      let rows = Math.max(1, Math.floor((usableH + gap) / (CELL_H + gap)));
+      const total = cols * rows;
+      let count = auto ? total : Math.min(Math.max(1, +$('idpCount').value || 1), total);
+
+      sheet.style.width = PAGE_W + 'mm';
+      sheet.style.height = PAGE_H + 'mm';
+      sheet.style.padding = margin + 'mm';
+      sheet.style.boxSizing = 'border-box';
+      sheet.style.display = 'grid';
+      sheet.style.gridTemplateColumns = `repeat(${cols}, ${CELL_W}mm)`;
+      sheet.style.gridAutoRows = `${CELL_H}mm`;
+      sheet.style.gap = gap + 'mm';
+      sheet.style.justifyContent = 'center';
+      sheet.style.alignContent = 'center';
+      sheet.innerHTML = '';
+
+      for (let i = 0; i < count; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'idp-cell';
+        cell.style.width = CELL_W + 'mm';
+        cell.style.height = CELL_H + 'mm';
+        cell.style.border = showLines ? '0.1mm solid #ccc' : 'none';
+        cell.style.background = fit === 'contain' ? bg : '#000';
+        if (state.src) {
+          const img = document.createElement('img');
+          img.src = state.src;
+          img.style.objectFit = fit;
+          cell.appendChild(img);
+        } else {
+          const ph = document.createElement('div');
+          ph.className = 'idp-ph';
+          ph.textContent = '照片';
+          cell.appendChild(ph);
+        }
+        sheet.appendChild(cell);
+      }
+
+      info.textContent = state.src
+        ? `排版：${cols} 列 × ${rows} 行 = ${total} 张/页　本次打印 ${count} 张`
+        : '请先选择一张照片';
+    }
+
+    render();
+  })();
+</script>
 </body>
 </html>
