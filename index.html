@@ -10,8 +10,8 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: center;
     background: #f0f2f5;
     color: #333;
   }
@@ -23,6 +23,7 @@
     text-align: center;
     max-width: 920px;
     width: 92%;
+    margin: 56px 0 40px;
   }
   .card h1 {
     font-size: 28px;
@@ -227,6 +228,8 @@
       <a class="btn" href="https://sgc20261009.github.io/special-symbols/" target="_blank" rel="noopener">常用特殊符号快速复制</a>
       <a class="btn" href="https://sgc20261009.github.io/temperature-converter/" target="_blank" rel="noopener">温度换算</a>
       <a class="btn" href="https://sgc20261009.github.io/motor-three-phase-resistance/" target="_blank" rel="noopener">电机电阻换算</a>
+      <a class="btn" href="https://sgc20261009.github.io/reward-support/" target="_blank" rel="noopener">打赏支持</a>
+      <a class="btn" href="https://sgc20261009.github.io/external-site/" target="_blank" rel="noopener">外部网页</a>
     </div>
     <div class="support-row">
     <div class="reward-sec">
@@ -430,9 +433,65 @@
   })();
 </script>
 
-<!-- 不蒜子 busuanzi 访问量统计：每次打开自动 +1，跨访客累加；失败时保留占位「…」不报错 -->
-<!-- 国内可直连镜像（原 ibruce.info 近年常抽风，换 9420.ltd 镜像） -->
-<script async src="https://busuanzi.9420.ltd/busuanzi.pure.mini.js"></script>
-</body>
+<!-- 访问量统计：不蒜子官方接口（每次打开页面 +1）；脚本拉取失败时用本机计数兜底，保证永远有数字 -->
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script>
+(function () {
+  var KEY = 'sgc_pv_local';
+  var el = document.getElementById('busuanzi_value_page_pv');
+  var box = document.getElementById('visitCounter');
+  if (!el) return;
+
+  function paintReal(n) {
+    el.textContent = n;
+    if (box) box.title = '页面访问量（累计）';
+  }
+  function localBump() {
+    var n = 1;
+    try {
+      n = (parseInt(localStorage.getItem(KEY) || '0', 10) || 0) + 1;
+      localStorage.setItem(KEY, String(n));
+    } catch (e) {}
+    return n;
+  }
+  function toLocal() {
+    el.textContent = localBump();
+    if (box) box.title = '统计服务未连上，当前显示本机计数';
+  }
+
+  // 二次兜底：直接走 JSONP 接口（部分广告拦截插件会拦 *.min.js 但放行接口请求）
+  var tried = false;
+  function retryJsonp() {
+    if (tried) return;
+    tried = true;
+    var cb = 'bzfb_' + Date.now();
+    var t2 = setTimeout(toLocal, 2500);
+    window[cb] = function (d) {
+      clearTimeout(t2);
+      var n = (d && (d.page_pv || d.site_pv)) || 0;
+      if (n > 0) { paintReal(n); } else { toLocal(); }
+      try { delete window[cb]; } catch (e) {}
+    };
+    var s = document.createElement('script');
+    s.src = 'https://busuanzi.ibruce.info/busuanzi?jsonpCallback=' + cb;
+    s.async = true;
+    s.referrerPolicy = 'no-referrer-when-downgrade';
+    s.onerror = function () { clearTimeout(t2); toLocal(); };
+    document.head.appendChild(s);
+  }
+
+  // 4 秒内没拿到数字 → 先重试接口，再不行就本机计数兜底（保证永远有数字且每次打开 +1）
+  setTimeout(function () {
+    if (/^\d+$/.test((el.textContent || '').trim())) {
+      if (box) box.title = '页面访问量（累计）';
+      return;
+    }
+    retryJsonp();
+  }, 4000);
+})();
+</script>
+  <footer style="width:100%;margin-top:auto;padding:22px 18px 42px;color:#8b98a9;font-size:12px;line-height:1.9;border-top:1px solid #2e3a4a;text-align:center;background:#0c1118;">
+    <p style="margin:0;"><strong style="color:#e6edf3;">免责声明：</strong>本站为个人博客，博客所发布的一切软件的文章仅限用于学习和研究目的；不得将上述内容用于商业或者非法用途，否则，一切后果请用户自负。本站信息来自网络，版权争议与本站无关，您必须在下载后的24个小时之内，从您的电脑中彻底删除上述内容。访问和下载本站内容，说明您已同意上述条款。本站为非盈利性站点，本站不贩卖软件，所有内容不作为商业行为。</p>
+  </footer>
 </body>
 </html>
