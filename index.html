@@ -199,6 +199,32 @@
     width: 30px; height: 30px; border: none; border-radius: 50%; cursor: pointer;
     background: rgba(0,0,0,.55); color: #fff; font-size: 18px; line-height: 1;
   }
+  /* 自用 密码弹层 */
+  .pwd-modal {
+    position: fixed; inset: 0; display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,.5); z-index: 9999;
+  }
+  .pwd-modal.open { display: flex; }
+  .pwd-box {
+    background: #fff; color: #222; border-radius: 14px; padding: 26px 24px;
+    width: 320px; max-width: 88vw; box-shadow: 0 16px 48px rgba(0,0,0,.35);
+  }
+  .pwd-title { font-size: 17px; font-weight: 700; margin-bottom: 16px; text-align: center; }
+  .pwd-input {
+    width: 100%; box-sizing: border-box; padding: 11px 12px; font-size: 15px;
+    border: 1px solid #cbd5e1; border-radius: 8px; outline: none;
+  }
+  .pwd-input:focus { border-color: #1a73e8; }
+  .pwd-err { color: #e23; font-size: 13px; min-height: 18px; margin: 8px 2px 0; }
+  .pwd-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .pwd-btn {
+    flex: 1; padding: 11px; border: none; border-radius: 8px; font-size: 15px; cursor: pointer;
+  }
+  .pwd-ok { background: #1a73e8; color: #fff; }
+  .pwd-ok:hover { background: #1557b0; }
+  .pwd-ok:disabled { opacity: .6; cursor: default; }
+  .pwd-cancel { background: #eef2f7; color: #333; }
+  .pwd-cancel:hover { background: #e2e8f0; }
 </style>
 </head>
 <body>
@@ -209,6 +235,19 @@
     <div class="wx-app-box">
       <button class="wx-app-close" type="button" onclick="closeWxApp()">✕</button>
       <img id="wxAppImg" src="" alt="微信小程序">
+    </div>
+  </div>
+
+  <!-- 自用 密码弹层 -->
+  <div id="pwdModal" class="pwd-modal">
+    <div class="pwd-box">
+      <div class="pwd-title">输入访问密码</div>
+      <input id="pwdInput" class="pwd-input" type="password" placeholder="请输入密码" autocomplete="off">
+      <div id="pwdErr" class="pwd-err"></div>
+      <div class="pwd-actions">
+        <button id="pwdOk" class="pwd-btn pwd-ok" type="button" onclick="verifyPwd()">确定</button>
+        <button class="pwd-btn pwd-cancel" type="button" onclick="closePwdModal()">取消</button>
+      </div>
     </div>
   </div>
   <div class="card">
@@ -231,6 +270,8 @@
       <a class="btn" href="https://sgc20261009.github.io/reward-support/" target="_blank" rel="noopener">打赏支持</a>
       <a class="btn" href="https://sgc20261009.github.io/external-site/" target="_blank" rel="noopener">外部网页</a>
       <a class="btn" href="https://niche-software-download.app.workbuddy.host/?sharecode=SFJXWAZVYC" target="_blank" rel="noopener">小众软件下载</a>
+      <button class="btn" type="button" onclick="openPwdModal()">自用</button>
+      <a class="btn" href="https://batch-rename-tool-81301.app.workbuddy.host/?sharecode=YT6B7FBG5E" target="_blank" rel="noopener">批量重命名系统</a>
     </div>
     <div class="support-row">
     <div class="reward-sec">
@@ -432,6 +473,54 @@
     modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('open'); });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') modal.classList.remove('open'); });
   })();
+</script>
+
+<!-- 自用 密码校验（密码不存明文，仅存 SHA-256 哈希，输入后本地比对） -->
+<script>
+(function () {
+  var PWD_HASH = '15fc36b3e80b9d7f87f7dc90cd7a2845c5d8501c30f03379fcf14154f1680380';
+  // 跳转地址做一层混淆：分两段 base64 存储，运行时解码，源码里不出现明文网址
+  var TARGET_B64 = 'aHR0cHM6Ly96aXlvbmctcm90' + 'b3Itcm91dGUuYXBwLndvcmtidWRkeS5ob3N0Lz9zaGFyZWNvZGU9U0JJN002UTI1Rw==';
+  var modal = document.getElementById('pwdModal');
+  var input = document.getElementById('pwdInput');
+  var err = document.getElementById('pwdErr');
+  var btn = document.getElementById('pwdOk');
+
+  window.openPwdModal = function () {
+    err.textContent = '';
+    input.value = '';
+    modal.classList.add('open');
+    setTimeout(function () { try { input.focus(); } catch (e) {} }, 50);
+  };
+  window.closePwdModal = function () { modal.classList.remove('open'); };
+
+  async function verify() {
+    var v = input.value;
+    if (!v) { err.textContent = '请输入密码'; return; }
+    btn.disabled = true; btn.textContent = '校验中…';
+    try {
+      var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(v));
+      var hex = Array.from(new Uint8Array(buf))
+        .map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      if (hex === PWD_HASH) {
+        window.location.href = atob(TARGET_B64);
+      } else {
+        err.textContent = '密码错误，请重试';
+        input.value = ''; input.focus();
+      }
+    } catch (e) {
+      err.textContent = '当前环境不支持加密校验，请通过 https 打开';
+    } finally {
+      btn.disabled = false; btn.textContent = '确定';
+    }
+  }
+  window.verifyPwd = verify;
+  modal.addEventListener('click', function (e) { if (e.target === modal) modal.classList.remove('open'); });
+  input.addEventListener('keydown', function (e) { if (e.key === 'Enter') verify(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && modal.classList.contains('open')) modal.classList.remove('open');
+  });
+})();
 </script>
 
 <!-- 访问量统计：不蒜子官方接口（每次打开页面 +1）；脚本拉取失败时用本机计数兜底，保证永远有数字 -->
